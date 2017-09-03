@@ -1,0 +1,25 @@
+package wl
+{{- range .Interfaces }}{{$ifn := ifname .Name}}
+{{ range .Enums }}{{$enn := camel .Name}}
+{{ range .Entries }}
+const {{$ifn}}{{$enn}}{{camel .Name }} = {{.Value}} // {{.Summary}}{{ end }}
+{{ end }}
+type {{$ifn}}Listener interface {
+{{- range .Events }}
+    {{camel .Name }}({{req_sig .Args}}){{ end }}
+}
+
+{{desc_to_comment .Description.Text}}type {{ $ifn }} struct {
+    ObjectID
+    listener {{$ifn}}Listener
+}
+
+func (this *{{$ifn}}) AddListener(listener {{$ifn}}Listener) {
+    this.listener = listener
+}
+{{ range .Requests }}
+{{desc_to_comment .Description.Text}}func (this *{{$ifn}}) {{camel .Name}}({{req_sig .Args}}) {{req_ret_sig .Args}} {
+    return {{req_ret .Args}}
+}
+{{ end }}
+{{ end }}
